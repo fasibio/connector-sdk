@@ -5,11 +5,10 @@ package main
 
 import (
 	"flag"
+	"github.com/fasibio/connector-sdk/types"
+	"github.com/openfaas/faas-provider/auth"
 	"log"
 	"time"
-
-	"github.com/openfaas-incubator/connector-sdk/types"
-	"github.com/openfaas/faas-provider/auth"
 )
 
 func main() {
