@@ -110,9 +110,9 @@ func (s *FunctionLookupBuilder) Build() (map[string][]string, error) {
 	)
 
 	namespaces, err := s.getNamespaces()
-	if err != nil {
-		return map[string][]string{}, err
-	}
+	// if err != nil {
+	// 	return map[string][]string{}, err
+	// }
 	serviceMap := make(map[string][]string)
 
 	if len(namespaces) == 0 {
@@ -122,6 +122,7 @@ func (s *FunctionLookupBuilder) Build() (map[string][]string, error) {
 			return map[string][]string{}, err
 		}
 		serviceMap = buildServiceMap(&functions, s.TopicDelimiter, namespace, serviceMap)
+		return serviceMap, err
 	} else {
 		for _, namespace := range namespaces {
 			functions, err := s.getFunctions(namespace)
@@ -129,6 +130,7 @@ func (s *FunctionLookupBuilder) Build() (map[string][]string, error) {
 				return map[string][]string{}, err
 			}
 			serviceMap = buildServiceMap(&functions, s.TopicDelimiter, namespace, serviceMap)
+			return serviceMap, err
 		}
 	}
 
