@@ -79,7 +79,7 @@ func NewController(credentials *auth.BasicAuthCredentials, config *ControllerCon
 
 	invoker := NewInvoker(gatewayFunctionPath,
 		MakeClient(config.UpstreamTimeout),
-		config.PrintResponse)
+		config.PrintResponse, credentials)
 
 	subs := []ResponseSubscriber{}
 

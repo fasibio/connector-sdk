@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/openfaas/faas-provider/auth"
 	"github.com/pkg/errors"
 )
 
@@ -20,6 +21,7 @@ type Invoker struct {
 	Client        *http.Client
 	GatewayURL    string
 	Responses     chan InvokerResponse
+	Credentials   *auth.BasicAuthCredentials
 }
 
 type InvokerResponse struct {
@@ -32,12 +34,13 @@ type InvokerResponse struct {
 	Function string
 }
 
-func NewInvoker(gatewayURL string, client *http.Client, printResponse bool) *Invoker {
+func NewInvoker(gatewayURL string, client *http.Client, printResponse bool, credentials *auth.BasicAuthCredentials) *Invoker {
 	return &Invoker{
 		PrintResponse: printResponse,
 		Client:        client,
 		GatewayURL:    gatewayURL,
 		Responses:     make(chan InvokerResponse),
+		Credentials:   credentials,
 	}
 }
 
@@ -62,7 +65,7 @@ func (i *Invoker) InvokeWithContext(ctx context.Context, topicMap *TopicMap, top
 		gwURL := fmt.Sprintf("%s/%s", i.GatewayURL, matchedFunction)
 		reader := bytes.NewReader(*message)
 
-		body, statusCode, header, doErr := invokefunction(ctx, i.Client, gwURL, reader)
+		body, statusCode, header, doErr := invokefunction(ctx, i.Client, gwURL, reader, i.Credentials)
 
 		if doErr != nil {
 			i.Responses <- InvokerResponse{
@@ -83,11 +86,14 @@ func (i *Invoker) InvokeWithContext(ctx context.Context, topicMap *TopicMap, top
 	}
 }
 
-func invokefunction(ctx context.Context, c *http.Client, gwURL string, reader io.Reader) (*[]byte, int, *http.Header, error) {
+func invokefunction(ctx context.Context, c *http.Client, gwURL string, reader io.Reader, cred *auth.BasicAuthCredentials) (*[]byte, int, *http.Header, error) {
 
 	httpReq, _ := http.NewRequest(http.MethodPost, gwURL, reader)
 	httpReq.WithContext(ctx)
+	if cred != nil {
+		httpReq.SetBasicAuth(cred.User, cred.Password)
 
+	}
 	if httpReq.Body != nil {
 		defer httpReq.Body.Close()
 	}
